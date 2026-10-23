@@ -1,278 +1,370 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
 import Lenis from 'lenis'
-import { motion, useScroll, useTransform, AnimatePresence, useReducedMotion } from 'framer-motion'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Pic, { has } from './components/Pic'
 import Logo from './components/Logo'
-import { Magnetic, Reveal, FadeUp, Cursor, ease } from './components/Fx'
+import Split from './components/Split'
 import { profile, disciplines, projects, designWork, upcoming, certificates, talks, gallery } from './data/content'
 
-const NAV = [['work', 'Work'], ['about', 'About'], ['upcoming', 'Upcoming'], ['certificates', 'Certificates'], ['gallery', 'Gallery'], ['contact', 'Contact']]
-let lenis
-const go = (e, id) => { e?.preventDefault(); const el = document.getElementById(id); if (!el) return; lenis ? lenis.scrollTo(el, { offset: -10, duration: 1.6 }) : el.scrollIntoView({ behavior: 'smooth' }) }
+gsap.registerPlugin(ScrollTrigger)
+const RM = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+const FINE = typeof matchMedia !== 'undefined' && matchMedia('(pointer:fine) and (min-width:900px)').matches
+const base = import.meta.env.BASE_URL
+let lenis = null
+const go = (e, id) => { e?.preventDefault(); const el = document.getElementById(id); if (!el) return; lenis ? lenis.scrollTo(el, { duration: 1.8 }) : el.scrollIntoView() }
+const NAV = [['about', 'About'], ['work', 'Work'], ['gallery', 'Gallery'], ['upcoming', 'Upcoming'], ['speaking', 'Speaking'], ['certificates', 'Certificates'], ['contact', 'Contact']]
+const pad = (n) => String(n).padStart(2, '0')
 
-function Intro({ done }) {
+/* ───────── preloader ───────── */
+function Preloader({ onDone }) {
+  const root = useRef(null), num = useRef(null)
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      const o = { v: 0 }
+      const tl = gsap.timeline({ onComplete: onDone })
+      tl.from('.pl-l', { yPercent: 110, duration: 0.9, ease: 'expo.out', stagger: 0.035 }, 0.1)
+        .to(o, { v: 100, duration: 1.5, ease: 'power3.inOut', onUpdate: () => { num.current.textContent = pad(Math.round(o.v)).padStart(3, '0') } }, 0)
+        .to('.pl-bar i', { scaleX: 1, duration: 1.5, ease: 'power3.inOut' }, 0)
+        .to('.pl-l', { yPercent: -110, duration: 0.7, ease: 'expo.in', stagger: 0.012 }, 1.55)
+        .to(root.current, { clipPath: 'inset(0 0 100% 0)', duration: 1.1, ease: 'expo.inOut' }, 1.85)
+    }, root)
+    return () => ctx.revert()
+  }, [onDone])
   return (
-    <motion.div className="intro" initial={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.9, ease } }} onAnimationComplete={() => {}}>
-      <motion.div initial={{ scale: 0.7, opacity: 0, rotate: -90 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ duration: 1.4, ease }}><Logo size="xl" mono /></motion.div>
-      <div className="intro-name"><motion.span initial={{ y: '110%' }} animate={{ y: 0 }} transition={{ duration: 1, ease, delay: 0.5 }}>{profile.name}</motion.span></div>
-      <motion.div className="intro-bar" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1.6, ease, delay: 0.3 }} onAnimationComplete={done} />
-    </motion.div>
+    <div className="pl" ref={root} aria-hidden="true">
+      <div className="pl-top"><span>Portfolio</span><span>{profile.location}</span></div>
+      <div className="pl-name">{[...profile.name.toUpperCase()].map((c, i) => <span className="pl-m" key={i}><span className="pl-l">{c === ' ' ? '\u00a0' : c}</span></span>)}</div>
+      <div className="pl-foot"><div className="pl-bar"><i /></div><span className="pl-num" ref={num}>000</span></div>
+    </div>
   )
 }
 
+/* ───────── cursor + hover preview ───────── */
+function Cursor() {
+  const dot = useRef(null)
+  useEffect(() => {
+    if (!FINE) return
+    const xT = gsap.quickTo(dot.current, 'x', { duration: 0.45, ease: 'power3' }), yT = gsap.quickTo(dot.current, 'y', { duration: 0.45, ease: 'power3' })
+    const mv = (e) => { xT(e.clientX); yT(e.clientY); const t = e.target.closest?.('a,button,[data-cursor]'); dot.current.classList.toggle('on', !!t); dot.current.dataset.label = t?.dataset.cursor && t.dataset.cursor !== 'hover' ? t.dataset.cursor : '' }
+    document.documentElement.classList.add('has-cursor'); addEventListener('mousemove', mv)
+    return () => removeEventListener('mousemove', mv)
+  }, [])
+  return FINE ? <div className="cur" ref={dot} aria-hidden="true" /> : null
+}
+
+function Magnetic({ children, className = '', ...rest }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!FINE || RM) return
+    const el = ref.current, x = gsap.quickTo(el, 'x', { duration: 0.6, ease: 'elastic.out(1,.4)' }), y = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'elastic.out(1,.4)' })
+    const m = (e) => { const r = el.getBoundingClientRect(); x((e.clientX - r.left - r.width / 2) * 0.3); y((e.clientY - r.top - r.height / 2) * 0.3) }
+    const l = () => { x(0); y(0) }
+    el.addEventListener('mousemove', m); el.addEventListener('mouseleave', l)
+    return () => { el.removeEventListener('mousemove', m); el.removeEventListener('mouseleave', l) }
+  }, [])
+  return <a ref={ref} className={`btn ${className}`} {...rest}><span className="btn-t">{children}</span></a>
+}
+
+/* ───────── header / menu ───────── */
+function Clock() {
+  const [t, setT] = useState('')
+  useEffect(() => { const f = () => setT(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit' }).format(new Date())); f(); const i = setInterval(f, 20000); return () => clearInterval(i) }, [])
+  return <span className="clock">Dhaka <i>{t}</i></span>
+}
 function Header() {
-  const [open, setOpen] = useState(false); const [solid, setSolid] = useState(false)
-  useEffect(() => { const f = () => setSolid(scrollY > 40); f(); addEventListener('scroll', f, { passive: true }); return () => removeEventListener('scroll', f) }, [])
+  const [open, setOpen] = useState(false)
   useEffect(() => { document.documentElement.classList.toggle('menu-open', open); open ? lenis?.stop() : lenis?.start() }, [open])
+  useEffect(() => { const k = (e) => e.key === 'Escape' && setOpen(false); addEventListener('keydown', k); return () => removeEventListener('keydown', k) }, [])
   return (
-    <header className={`hdr ${solid ? 'solid' : ''}`}>
-      <a href="#top" className="brand" onClick={(e) => { go(e, 'top'); setOpen(false) }} aria-label="Abdul Aziz Bin Harun, home"><Logo size="sm" /><span className="brand-t">Abdul Aziz<em>Bin Harun</em></span></a>
-      <nav className={`nav ${open ? 'open' : ''}`} aria-label="Main">
-        {NAV.map(([id, l], i) => <a key={id} href={`#${id}`} style={{ '--i': i }} onClick={(e) => { go(e, id); setOpen(false) }}>{l}</a>)}
+    <>
+      <header className="hdr">
+        <a href="#top" className="hdr-mark" onClick={(e) => { go(e, 'top'); setOpen(false) }} aria-label="Abdul Aziz Bin Harun, home"><img src={`${base}brand/monogram.svg`} alt="" width="40" height="40" /><span>Abdul Aziz<br />Bin Harun</span></a>
+        <Clock />
+        <span className="hdr-role">Designer · Developer · Speaker · AI</span>
+        <button className="hdr-menu" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="menu"><span className="mt">{open ? 'Close' : 'Menu'}</span><span className={`mi ${open ? 'x' : ''}`}><i /><i /></span></button>
+      </header>
+      <nav id="menu" className={`menu ${open ? 'open' : ''}`} aria-label="Main" aria-hidden={!open}>
+        <div className="menu-in">
+          <ol>{NAV.map(([id, l], i) => <li key={id} style={{ '--i': i }}><a href={`#${id}`} tabIndex={open ? 0 : -1} onClick={(e) => { setOpen(false); setTimeout(() => go(e, id), 10); e.preventDefault() }}><small>{pad(i + 1)}/</small><span>{l}</span></a></li>)}</ol>
+          <div className="menu-side"><Logo size="lg" mono /><p>{profile.location}</p><a href={`mailto:${profile.email}`} tabIndex={open ? 0 : -1}>{profile.email}</a><a href={profile.linkedin} target="_blank" rel="noopener noreferrer" tabIndex={open ? 0 : -1}>LinkedIn ↗</a></div>
+        </div>
       </nav>
-      <button className={`burger ${open ? 'x' : ''}`} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}><span /><span /></button>
-    </header>
+    </>
   )
 }
 
+/* ───────── sections ───────── */
 function Hero() {
-  const ref = useRef(null); const rm = useReducedMotion()
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
-  const yImg = useTransform(scrollYProgress, [0, 1], ['0%', rm ? '0%' : '14%'])
-  const yTxt = useTransform(scrollYProgress, [0, 1], ['0%', rm ? '0%' : '-18%'])
-  const op = useTransform(scrollYProgress, [0, 0.8], [1, 0])
   return (
-    <section className="hero" id="top" ref={ref}>
-      <div className="hero-glow" aria-hidden="true" />
-      <motion.div className="hero-copy" style={{ y: yTxt, opacity: op }}>
-        <FadeUp className="eyebrow" delay={0.2}><span className="ln" />{profile.location}</FadeUp>
-        <h1 className="hero-h">
-          <Reveal delay={0.25}>{profile.first}</Reveal>
-          <Reveal delay={0.38} className="gold-i"><em>{profile.last}</em></Reveal>
-        </h1>
-        <FadeUp as="ul" className="roles" delay={0.6}>{profile.roles.map((r) => <li key={r}>{r}</li>)}</FadeUp>
-        <FadeUp as="p" className="hero-p" delay={0.72}>{profile.tagline}</FadeUp>
-        <FadeUp className="cta" delay={0.85}>
-          <Magnetic href="#work" className="btn btn-gold" onClick={(e) => go(e, 'work')}>View my work <span aria-hidden>→</span></Magnetic>
-          <Magnetic href="#contact" className="btn btn-ghost" onClick={(e) => go(e, 'contact')}>Get in touch</Magnetic>
-        </FadeUp>
-      </motion.div>
-      <motion.div className="hero-art" style={{ y: yImg }}>
-        <motion.div className="halo" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.6, ease, delay: 0.2 }} aria-hidden="true" />
-        <motion.div className="hero-cut" initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.4, ease, delay: 0.35 }}>
-          <Pic name="cut-navy" eager sizes="(max-width:900px) 80vw, 40vw" alt="Abdul Aziz Bin Harun in a navy suit" />
-        </motion.div>
-        <motion.div className="hero-badge" initial={{ opacity: 0, scale: 0.6, rotate: -60 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: 1.5, ease, delay: 0.8 }}><Logo size="lg" /></motion.div>
-      </motion.div>
-      <a className="scroll-cue" href="#about" onClick={(e) => go(e, 'about')}><span>Scroll</span><i /></a>
+    <section className="hero" id="top">
+      <div className="hero-meta hm-l"><span className="lbl">(Portfolio)</span><span className="lbl">{profile.location}</span></div>
+      <h1 className="hero-name" aria-label={profile.name}>
+        <span className="hn hn-1" aria-hidden="true"><Split parts="ABDUL AZIZ" /></span>
+        <span className="hn hn-2" aria-hidden="true"><Split parts="BIN HARUN" /></span>
+      </h1>
+      <div className="hero-cut"><Pic name="cut-navy" eager sizes="(max-width:900px) 92vw, 46vw" alt="Abdul Aziz Bin Harun in a tailored suit" /></div>
+      <ul className="hero-roles">{profile.roles.map((r, i) => <li key={r}><small>{pad(i + 1)}</small>{r}</li>)}</ul>
+      <p className="hero-tag">{profile.tagline}</p>
+      <div className="hero-emb"><Logo size="lg" /></div>
+      <a className="hero-scroll lbl" href="#about" onClick={(e) => go(e, 'about')}>Scroll <i /></a>
     </section>
   )
 }
 
 function Marquee() {
-  const words = ['Design', 'Code', 'Artificial Intelligence', 'Inspire']
-  return <div className="marquee" aria-hidden="true"><div className="mq-track">{[0, 1, 2, 3].map((k) => <span key={k}>{words.map((w) => <b key={w}>{w}<i>✦</i></b>)}</span>)}</div></div>
+  const w = ['Graphic Design', 'Web Development', 'Artificial Intelligence', 'Motivational Speaking']
+  return <div className="mq" aria-hidden="true"><div className="mq-t">{[0, 1].map((k) => <span key={k}>{w.map((x, i) => <b key={x} className={i % 2 ? 'it' : ''}>{x}<i>✳</i></b>)}</span>)}</div></div>
 }
 
-function SecHead({ n, kicker, title, sub }) {
+function Head({ n, label, title, light }) {
   return (
-    <div className="sec-head">
-      <FadeUp className="kicker"><span>{n}</span>{kicker}</FadeUp>
-      <h2 className="h2"><Reveal>{title}</Reveal></h2>
-      {sub && <FadeUp as="p" className="sub" delay={0.15}>{sub}</FadeUp>}
+    <div className={`head ${light ? 'head--l' : ''}`}>
+      <div className="head-l"><span className="num">{pad(n)}/</span><span className="lbl">{label}</span></div>
+      <Split as="h2" className="h2" parts={title} />
     </div>
   )
 }
 
 function About() {
-  const ref = useRef(null); const rm = useReducedMotion()
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], rm ? ['0%', '0%'] : ['-8%', '8%'])
   return (
-    <section className="sec about" id="about" ref={ref}>
-      <div className="about-img"><motion.div className="par" style={{ y }}><Pic name="portrait-navy" sizes="(max-width:900px) 92vw, 40vw" alt="Portrait of Abdul Aziz Bin Harun" /></motion.div><span className="frame" aria-hidden="true" /></div>
-      <div className="about-copy">
-        <SecHead n="01" kicker="About" title={<>Building useful things, <em>beautifully.</em></>} />
-        <FadeUp as="p" className="lead">{profile.intro}</FadeUp>
-        <div className="disc">
-          {disciplines.map((d, i) => (
-            <FadeUp key={d.n} className="disc-i" delay={i * 0.08}><span className="disc-n">{d.n}</span><h3>{d.title}</h3><p>{d.text}</p></FadeUp>
-          ))}
+    <section className="sec about" id="about">
+      <Head n={1} label="About" title={['The work of a ', ['maker.', 'i']]} />
+      <div className="about-grid">
+        <figure className="about-img clip"><Pic name="portrait-navy-bw" sizes="(max-width:900px) 92vw, 34vw" alt="Black and white portrait of Abdul Aziz Bin Harun" /><figcaption className="lbl">Abdul Aziz Bin Harun, {profile.location}</figcaption></figure>
+        <div className="about-copy">
+          <Split as="p" className="scrub" mode="scrub" parts={profile.intro} />
+          <ol className="disc">{disciplines.map((d) => (
+            <li key={d.n} className="disc-i fade"><span className="num">{d.n}/</span><h3>{d.title}</h3><p>{d.text}</p></li>))}</ol>
         </div>
       </div>
     </section>
   )
 }
 
-function Visual({ kind }) {
-  return <div className={`vis vis-${kind}`} aria-hidden="true">{kind === 'cosmos' ? <><i className="planet" /><i className="orbit" /><b>Facts<br />In Seconds</b></> : <><i className="play" /><b>Blink<br />Beyond</b></>}</div>
-}
-
-function ProjectCard({ p, i }) {
-  if (p.placeholder) return (
-    <article className="pcard pcard--ph"><div className="pc-media ph-media"><span className="ph-plus">+</span></div>
-      <div className="pc-body"><span className="pc-kind">{p.kind}</span><h3>{p.title}</h3><p>{p.text}</p><span className="ph-tag">Placeholder</span></div></article>
-  )
-  return (
-    <article className="pcard">
-      <div className="pc-media">{p.image && has(p.image) ? <Pic name={p.image} sizes="(max-width:900px) 88vw, 46vw" alt={`${p.title} website`} /> : <Visual kind={p.visual} />}<span className="pc-n">{String(i + 1).padStart(2, '0')}</span></div>
-      <div className="pc-body"><span className="pc-kind">{p.kind}</span><h3>{p.title}</h3><p>{p.text}</p>
-        <div className="pc-links">{p.links?.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className="tlink">{l.label} <span aria-hidden>↗</span></a>)}</div></div>
-    </article>
-  )
-}
-
 function Work() {
-  const ref = useRef(null); const track = useRef(null); const rm = useReducedMotion()
-  const [dist, setDist] = useState(0); const [horiz, setHoriz] = useState(false)
+  const prev = useRef(null); const [cur, setCur] = useState(-1)
   useEffect(() => {
-    const m = () => { const h = innerWidth >= 900 && !rm; setHoriz(h); if (track.current) setDist(Math.max(0, track.current.scrollWidth - innerWidth)) }
-    m(); addEventListener('resize', m); const t = setTimeout(m, 600); return () => { removeEventListener('resize', m); clearTimeout(t) }
-  }, [rm])
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const x = useTransform(scrollYProgress, [0, 1], [0, -dist])
-  const bar = useTransform(scrollYProgress, [0, 1], [0, 1])
+    if (!FINE) return
+    const el = prev.current, x = gsap.quickTo(el, 'x', { duration: 0.7, ease: 'power3' }), y = gsap.quickTo(el, 'y', { duration: 0.7, ease: 'power3' })
+    const m = (e) => { x(e.clientX); y(e.clientY) }; addEventListener('mousemove', m); return () => removeEventListener('mousemove', m)
+  }, [])
+  const items = projects
   return (
-    <section className={`work ${horiz ? 'is-h' : ''}`} id="work" ref={ref} style={horiz ? { height: `calc(100vh + ${dist}px)` } : undefined}>
-      <div className="work-sticky">
-        <div className="work-head"><SecHead n="02" kicker="Selected work" title={<>Work that <em>works.</em></>} sub="Products, websites and content I have built and run." />
-          {horiz && <div className="work-bar" aria-hidden="true"><motion.i style={{ scaleX: bar }} /></div>}</div>
-        <motion.div className="work-track" ref={track} style={horiz ? { x } : undefined}>
-          {projects.map((p, i) => <ProjectCard key={p.title + i} p={p} i={i} />)}
-        </motion.div>
+    <section className="sec work" id="work">
+      <Head n={2} label="Selected work" title={['Built, run ', ['& shipped.', 'i']]} />
+      <ul className="plist" onMouseLeave={() => setCur(-1)}>
+        {items.map((p, i) => (
+          <li key={p.title + i} className={`prow fade ${p.placeholder ? 'is-ph' : ''} ${cur === i ? 'on' : ''}`} onMouseEnter={() => setCur(i)}>
+            <span className="num">{pad(i + 1)}/</span>
+            <div className="prow-main">
+              <h3>{p.placeholder ? 'Coming soon' : p.title}</h3>
+              <p>{p.placeholder ? 'A new project will be added here.' : p.text}</p>
+            </div>
+            <span className="prow-kind lbl">{p.placeholder ? 'Add your project' : p.kind}</span>
+            <div className="prow-links">{p.links?.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" data-cursor="Visit">{l.label} ↗</a>)}</div>
+            <div className="prow-thumb">{p.image && has(p.image) ? <Pic name={p.image} sizes="90vw" alt={`${p.title} website`} /> : <Visual kind={p.visual} ph={p.placeholder} />}</div>
+          </li>))}
+      </ul>
+      {FINE && <div className="pprev" ref={prev} aria-hidden="true">{items.map((p, i) => (
+        <div key={i} className={`pprev-i ${cur === i ? 'on' : ''}`}>{p.image && has(p.image) ? <Pic name={p.image} sizes="460px" alt="" /> : <Visual kind={p.visual} ph={p.placeholder} />}</div>))}</div>}
+    </section>
+  )
+}
+function Visual({ kind, ph }) {
+  if (ph) return <div className="vis vis-ph"><span>Coming soon</span></div>
+  return <div className={`vis vis-${kind}`}>{kind === 'cosmos' ? <><i className="orb" /><b>Facts<br /><em>in Seconds</em></b></> : <><i className="ply" /><b>Blink<em>Beyond</em></b></>}</div>
+}
+
+function Gallery({ onOpen }) {
+  return (
+    <section className="gal" id="gallery">
+      <div className="gal-pin">
+        <div className="gal-head"><Head n={3} label="Gallery" title={['In ', ['frame.', 'i']]} /><span className="lbl gal-hint">Drag / scroll →</span></div>
+        <div className="gal-track">
+          {gallery.map((g, i) => {
+            const bw = i % 2 === 1 && has(g.image + '-bw') ? g.image + '-bw' : g.image
+            return (
+              <button key={g.image} className={`gal-i gi-${i % 4}`} onClick={() => onOpen(i)} data-cursor="View" aria-label={`Open photo ${i + 1}: ${g.alt}`}>
+                <span className="gal-img"><Pic name={bw} sizes="(max-width:900px) 70vw, 30vw" alt={g.alt} /></span>
+                <span className="lbl">{pad(i + 1)} / {pad(gallery.length)}</span>
+              </button>)
+          })}
+        </div>
       </div>
     </section>
   )
 }
 
-function Design() {
-  return (
-    <section className="sec design" id="design">
-      <SecHead n="03" kicker="Graphic design" title={<>Visual <em>craft.</em></>} sub="A curated selection of graphic design work, coming soon." />
-      <div className="ph-grid">{designWork.map((d, i) => d.placeholder || !has(d.image)
-        ? <FadeUp key={i} className="phc" delay={i * 0.08}><span className="ph-plus">+</span><b>{d.title}</b><small>Add to <code>designWork</code> in content.js</small></FadeUp>
-        : <FadeUp key={i} className="dcard" delay={i * 0.08}><Pic name={d.image} alt={d.title} sizes="(max-width:700px) 92vw, 30vw" /><b>{d.title}</b></FadeUp>)}</div>
-    </section>
-  )
-}
-
-function Upcoming() {
-  return (
-    <section className="sec upcoming" id="upcoming">
-      <SecHead n="04" kicker="Upcoming" title={<>What's <em>next.</em></>} />
-      <ol className="tl">{upcoming.map((u, i) => (
-        <FadeUp as="li" key={i} className={`tl-i ${u.placeholder ? 'is-ph' : ''}`} delay={i * 0.1}><span className="tl-dot" aria-hidden="true" /><span className="tl-l">{u.label}</span><h3>{u.title}</h3><p>{u.text}</p></FadeUp>
-      ))}</ol>
-    </section>
-  )
-}
-
-function Speaker() {
-  return (
-    <section className="sec speaker" id="speaking">
-      <div className="spk-bg" aria-hidden="true"><Pic name="wall-smile" sizes="100vw" alt="" /></div>
-      <div className="spk-in">
-        <SecHead n="05" kicker="Speaking" title={<>Words that <em>move</em> people.</>} sub="Motivational talks on learning, building with AI and believing in your own work." />
-        <div className="talks">{talks.map((t, i) => (
-          <FadeUp key={i} className={`talk ${t.placeholder ? 'is-ph' : ''}`} delay={i * 0.1}><small>{t.place}</small><b>{t.title}</b>{t.placeholder && <span className="ph-tag">Placeholder</span>}</FadeUp>))}</div>
-        <Magnetic href="#contact" className="btn btn-gold" onClick={(e) => go(e, 'contact')}>Invite me to speak <span aria-hidden>→</span></Magnetic>
-      </div>
-    </section>
-  )
-}
-
-function Certificates() {
-  return (
-    <section className="sec certs" id="certificates">
-      <SecHead n="06" kicker="Certificates" title={<>Learning, <em>certified.</em></>} />
-      <div className="cert-grid">{certificates.map((c, i) => (
-        <FadeUp key={i} className={`cert ${c.placeholder ? 'is-ph' : ''}`} delay={i * 0.07}>
-          <div className="cert-seal" aria-hidden="true">✦</div>
-          {c.image && has(c.image) && <Pic name={c.image} alt={c.title} sizes="300px" />}
-          <b>{c.title}</b><small>{c.placeholder ? 'Add to certificates in content.js' : `${c.issuer ?? ''} ${c.year ?? ''}`}</small>
-        </FadeUp>))}</div>
-    </section>
-  )
-}
-
-function Gallery() {
-  const [open, setOpen] = useState(-1)
-  const close = useCallback(() => setOpen(-1), [])
-  const step = useCallback((d) => setOpen((o) => (o + d + gallery.length) % gallery.length), [])
+function Lightbox({ i, setI }) {
+  const close = useCallback(() => setI(-1), [setI])
+  const step = useCallback((d) => setI((o) => (o + d + gallery.length) % gallery.length), [setI])
   useEffect(() => {
-    if (open < 0) return; lenis?.stop()
+    if (i < 0) return; lenis?.stop()
     const k = (e) => { if (e.key === 'Escape') close(); if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1) }
     addEventListener('keydown', k); return () => { removeEventListener('keydown', k); lenis?.start() }
-  }, [open, close, step])
+  }, [i, close, step])
+  if (i < 0) return null
   return (
-    <section className="sec gallery" id="gallery">
-      <SecHead n="07" kicker="Gallery" title={<>In <em>frame.</em></>} />
-      <div className="g-grid">{gallery.map((g, i) => (
-        <FadeUp key={g.image} className={`g-i g-${i}`} delay={(i % 4) * 0.06}>
-          <button onClick={() => setOpen(i)} aria-label={`Open photo: ${g.alt}`} data-cursor="hover"><Pic name={g.image} alt={g.alt} sizes="(max-width:700px) 46vw, 25vw" /></button>
-        </FadeUp>))}</div>
-      <AnimatePresence>{open >= 0 && (
-        <motion.div className="lb" role="dialog" aria-modal="true" aria-label="Photo viewer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={close}>
-          <motion.div key={open} className="lb-img" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease }} onClick={(e) => e.stopPropagation()}>
-            <Pic name={gallery[open].image} alt={gallery[open].alt} sizes="90vw" eager />
-          </motion.div>
-          <button className="lb-b lb-x" onClick={close} aria-label="Close" autoFocus>×</button>
-          <button className="lb-b lb-p" onClick={(e) => { e.stopPropagation(); step(-1) }} aria-label="Previous photo">←</button>
-          <button className="lb-b lb-n" onClick={(e) => { e.stopPropagation(); step(1) }} aria-label="Next photo">→</button>
-          <span className="lb-c">{open + 1} / {gallery.length}</span>
-        </motion.div>)}</AnimatePresence>
+    <div className="lb" role="dialog" aria-modal="true" aria-label="Photo viewer" onClick={close}>
+      <div className="lb-img" key={i} onClick={(e) => e.stopPropagation()}><Pic name={gallery[i].image} alt={gallery[i].alt} sizes="90vw" eager /></div>
+      <button className="lb-b lb-x" onClick={close} aria-label="Close" autoFocus>Close</button>
+      <button className="lb-b lb-p" onClick={(e) => { e.stopPropagation(); step(-1) }} aria-label="Previous photo">Prev</button>
+      <button className="lb-b lb-n" onClick={(e) => { e.stopPropagation(); step(1) }} aria-label="Next photo">Next</button>
+      <span className="lb-c lbl">{pad(i + 1)} / {pad(gallery.length)}</span>
+    </div>
+  )
+}
+
+function Ivory() {
+  return (
+    <section className="ivory">
+      <div className="sec" id="design">
+        <Head n={4} label="Graphic design" title={['Visual ', ['craft.', 'i']]} light />
+        <div className="cs-grid">{designWork.map((d, i) => d.placeholder || !has(d.image)
+          ? <div key={i} className="cs fade"><span className="num">{pad(i + 1)}</span><span className="cs-c">Coming soon</span><span className="lbl">Design piece</span></div>
+          : <figure key={i} className="cs-img clip"><Pic name={d.image} alt={d.title} sizes="(max-width:700px) 92vw, 30vw" /><figcaption className="lbl">{d.title}</figcaption></figure>)}</div>
+      </div>
+      <div className="sec" id="upcoming">
+        <Head n={5} label="Upcoming" title={['What comes ', ['next.', 'i']]} light />
+        <ol className="tl">{upcoming.map((u, i) => (
+          <li key={i} className={`tl-i fade ${u.placeholder ? 'is-ph' : ''}`}><span className="num">{pad(i + 1)}/</span><span className="lbl">{u.label}</span><h3>{u.placeholder ? 'Coming soon' : u.title}</h3><p>{u.placeholder ? 'A new upcoming project will be announced here.' : u.text}</p></li>))}</ol>
+      </div>
+    </section>
+  )
+}
+
+function Speaking() {
+  return (
+    <section className="spk" id="speaking">
+      <div className="spk-img"><Pic name="wall-smile-bw" sizes="100vw" alt="" /></div>
+      <div className="spk-in sec">
+        <Head n={6} label="Speaking" title={['Words that ', ['move', 'i'], ' people.']} />
+        <p className="spk-p fade">Motivational talks on learning, building with AI and believing in your own work.</p>
+        <div className="talks">{talks.map((t, i) => (
+          <div key={i} className="talk fade"><span className="lbl">{t.placeholder ? 'Event · Date' : t.place}</span><b>{t.placeholder ? 'Coming soon' : t.title}</b></div>))}</div>
+        <Magnetic href="#contact" onClick={(e) => go(e, 'contact')}>Invite me to speak</Magnetic>
+      </div>
+    </section>
+  )
+}
+
+function Certs() {
+  return (
+    <section className="sec certs" id="certificates">
+      <Head n={7} label="Certificates" title={['Learning, ', ['certified.', 'i']]} />
+      <div className="cert-grid">{certificates.map((c, i) => (
+        <div key={i} className={`cert fade ${c.placeholder ? 'is-ph' : ''}`}>
+          <span className="num">{pad(i + 1)}</span>
+          {c.image && has(c.image) ? <Pic name={c.image} alt={c.title} sizes="300px" /> : <img className="cert-seal" src={`${base}brand/monogram.svg`} alt="" width="60" height="60" />}
+          <b>{c.placeholder ? 'Coming soon' : c.title}</b><span className="lbl">{c.placeholder ? 'Certificate' : `${c.issuer ?? ''} ${c.year ?? ''}`}</span>
+        </div>))}</div>
     </section>
   )
 }
 
 function Contact() {
   return (
-    <section className="sec contact" id="contact">
-      <Logo size="lg" />
-      <FadeUp className="kicker"><span>08</span>Contact</FadeUp>
-      <h2 className="h2 big"><Reveal>Let's create</Reveal><Reveal delay={0.1}><em>something remarkable.</em></Reveal></h2>
-      <div className="cta center">
-        <Magnetic href={`mailto:${profile.email}`} className="btn btn-gold">Email me <span aria-hidden>→</span></Magnetic>
-        <Magnetic href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="btn btn-ghost">LinkedIn ↗</Magnetic>
+    <section className="contact" id="contact">
+      <div className="sec">
+        <div className="head-l"><span className="num">08/</span><span className="lbl">Contact</span></div>
+        <Split as="h2" className="ct-big" parts={["Let's create ", ['something', 'i'], ' remarkable.']} />
+        <div className="ct-row">
+          <a className="ct-mail" href={`mailto:${profile.email}`} data-cursor="Write"><span className="lbl">Email</span><b>{profile.email}</b></a>
+          <div className="ct-links">
+            <Magnetic href={`mailto:${profile.email}`}>Email me</Magnetic>
+            <Magnetic href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="btn-o">LinkedIn ↗</Magnetic>
+          </div>
+        </div>
+        <p className="ct-note lbl">PDFroo enquiries · <a href="mailto:hello@pdfroo.com">hello@pdfroo.com</a></p>
       </div>
-      {profile.emailIsPlaceholder && <p className="note">Personal email placeholder: set <code>profile.email</code> in content.js</p>}
-      <p className="note">For PDFroo enquiries: <a href="mailto:hello@pdfroo.com">hello@pdfroo.com</a></p>
+      <footer className="ftr">
+        <img className="ftr-wm" src={`${base}brand/wordmark-ivory.svg`} alt="Abdul Aziz Bin Harun" width="1400" height="240" loading="lazy" />
+        <div className="ftr-row lbl"><span>© {new Date().getFullYear()} {profile.name}</span><span>{profile.location}</span><a href="#top" onClick={(e) => go(e, 'top')}>Back to top ↑</a></div>
+      </footer>
     </section>
   )
 }
 
+/* ───────── motion orchestration ───────── */
+function useMotion(ready) {
+  useLayoutEffect(() => {
+    if (!ready) return
+    if (RM) { document.documentElement.classList.add('rm'); return }
+    lenis = new Lenis({ duration: 1.25, smoothWheel: true, easing: (t) => 1 - Math.pow(1 - t, 4) })
+    lenis.on('scroll', ScrollTrigger.update)
+    const tick = (t) => lenis.raf(t * 1000); gsap.ticker.add(tick); gsap.ticker.lagSmoothing(0)
+    const mm = gsap.matchMedia()
+    const ctx = gsap.context(() => {
+      // hero intro
+      const tl = gsap.timeline({ delay: 0.05 })
+      tl.from('.hn .wi', { yPercent: 105, duration: 1.4, ease: 'expo.out', stagger: 0.08 })
+        .from('.hero-cut', { yPercent: 18, opacity: 0, duration: 1.6, ease: 'expo.out' }, 0.15)
+        .from('.hero-roles li, .hero-tag, .hero-meta .lbl, .hero-scroll', { y: 20, opacity: 0, duration: 1, ease: 'power3.out', stagger: 0.05 }, 0.6)
+        .from('.hero-emb', { scale: 0.6, rotate: -90, opacity: 0, duration: 1.6, ease: 'expo.out' }, 0.5)
+        .from('.hdr > *', { y: -20, opacity: 0, duration: 1, ease: 'power3.out', stagger: 0.06 }, 0.4)
+      // hero scroll: lines drift apart, cutout lifts
+      gsap.timeline({ scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+        .to('.hn-1', { xPercent: -12 }, 0).to('.hn-2', { xPercent: 12 }, 0)
+        .to('.hero-cut', { yPercent: -8, scale: 1.04 }, 0).to('.hero-roles, .hero-tag, .hero-emb', { opacity: 0, y: -40 }, 0)
+      // split heading reveals
+      gsap.utils.toArray('.split--rise').forEach((el) => {
+        if (el.closest('.hero')) return
+        gsap.from(el.querySelectorAll('.wi'), { yPercent: 110, duration: 1.2, ease: 'expo.out', stagger: 0.06, scrollTrigger: { trigger: el, start: 'top 88%' } })
+      })
+      // scrubbed reading paragraph
+      gsap.utils.toArray('.split--scrub').forEach((el) => {
+        gsap.fromTo(el.querySelectorAll('.wi'), { opacity: 0.14 }, { opacity: 1, stagger: 0.05, ease: 'none', scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 45%', scrub: true } })
+      })
+      // clip-path image reveals
+      gsap.utils.toArray('.clip').forEach((el) => {
+        gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 85%' } })
+          .fromTo(el, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'expo.inOut' })
+          .from(el.querySelector('img'), { scale: 1.35, duration: 2, ease: 'expo.out' }, 0.2)
+      })
+      gsap.utils.toArray('.fade').forEach((el) => gsap.from(el, { y: 40, opacity: 0, duration: 1.1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 92%' } }))
+      // speaking parallax + reveal
+      gsap.fromTo('.spk-img', { clipPath: 'inset(12% 8% 12% 8%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', scrollTrigger: { trigger: '.spk', start: 'top bottom', end: 'top top', scrub: true } })
+      gsap.fromTo('.spk-img img', { yPercent: -8, scale: 1.15 }, { yPercent: 8, scale: 1, ease: 'none', scrollTrigger: { trigger: '.spk', start: 'top bottom', end: 'bottom top', scrub: true } })
+      gsap.from('.ftr-wm', { yPercent: 60, opacity: 0, ease: 'none', scrollTrigger: { trigger: '.ftr', start: 'top bottom', end: 'bottom bottom', scrub: true } })
+      // pinned horizontal gallery (desktop/tablet)
+      mm.add('(min-width: 900px)', () => {
+        const track = document.querySelector('.gal-track')
+        const dist = () => track.scrollWidth - innerWidth + parseFloat(getComputedStyle(track).paddingLeft)
+        gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: '.gal', start: 'top top', end: () => '+=' + dist(), pin: '.gal-pin', scrub: 1, invalidateOnRefresh: true, anticipatePin: 1 } })
+        gsap.utils.toArray('.gal-img img').forEach((img) => gsap.fromTo(img, { xPercent: -8 }, { xPercent: 8, ease: 'none', scrollTrigger: { trigger: '.gal', start: 'top top', end: () => '+=' + dist(), scrub: true } }))
+      })
+    })
+    const r = () => ScrollTrigger.refresh(); const t = setTimeout(r, 800); addEventListener('load', r)
+    return () => { clearTimeout(t); ctx.revert(); mm.revert(); gsap.ticker.remove(tick); lenis.destroy(); lenis = null }
+  }, [ready])
+}
+
 export default function App() {
-  const rm = useReducedMotion()
-  const [intro, setIntro] = useState(() => !rm && !sessionStorage.getItem('aab-intro'))
-  useEffect(() => {
-    document.documentElement.classList.toggle('motion-ok', !rm)
-    if (rm) return
-    lenis = new Lenis({ duration: 1.2, smoothWheel: true })
-    let id; const raf = (t) => { lenis.raf(t); id = requestAnimationFrame(raf) }; id = requestAnimationFrame(raf)
-    return () => { cancelAnimationFrame(id); lenis.destroy(); lenis = null }
-  }, [rm])
-  useEffect(() => { if (intro) { lenis?.stop(); document.documentElement.classList.add('lock') } else { lenis?.start(); document.documentElement.classList.remove('lock') } }, [intro])
-  const done = () => setTimeout(() => { sessionStorage.setItem('aab-intro', '1'); setIntro(false) }, 350)
+  const [loading, setLoading] = useState(() => !RM && !sessionStorage.getItem('aab-pl'))
+  const [lb, setLb] = useState(-1)
+  const done = useCallback(() => { sessionStorage.setItem('aab-pl', '1'); setLoading(false) }, [])
+  useEffect(() => { document.documentElement.classList.toggle('lock', loading) }, [loading])
+  useMotion(!loading)
   return (
     <>
       <a className="skip" href="#main">Skip to content</a>
-      <AnimatePresence>{intro && <Intro key="intro" done={done} />}</AnimatePresence>
+      {loading && <Preloader onDone={done} />}
+      <div className="grain" aria-hidden="true" />
       <Cursor />
       <Header />
-      <main id="main">
-        {!intro && <Hero />}
-        {intro && <section className="hero" id="top" />}
+      <main id="main" className={loading ? 'pre' : ''}>
+        <Hero />
         <Marquee />
         <About />
         <Work />
-        <Design />
-        <Upcoming />
-        <Speaker />
-        <Certificates />
-        <Gallery />
+        <Gallery onOpen={setLb} />
+        <Ivory />
+        <Speaking />
+        <Certs />
         <Contact />
       </main>
-      <footer className="ftr"><span>© {new Date().getFullYear()} {profile.name}</span><span>{profile.location}</span><a href="#top" onClick={(e) => go(e, 'top')}>Back to top ↑</a></footer>
+      <Lightbox i={lb} setI={setLb} />
     </>
   )
 }
