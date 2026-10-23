@@ -87,7 +87,7 @@ function Hero() {
 
 function Marquee() {
   const w = ['Graphic Design', 'Web Development', 'Artificial Intelligence', 'Motivational Speaking']
-  return <div className="mq" aria-hidden="true"><div className="mq-t">{[0, 1].map((k) => <span key={k}>{w.map((x, i) => <b key={x} className={i % 2 ? 'foil-t it' : 'iri-t'}>{x}<i>✦</i></b>)}</span>)}</div></div>
+  return <div className="mq" aria-hidden="true"><div className="mq-t">{[0, 1].map((k) => <span key={k}>{w.map((x, i) => <b key={x} className={i % 2 ? 'gold-t it' : ''}>{x}<i>✦</i></b>)}</span>)}</div></div>
 }
 
 function Head({ n, label, title, gem }) {
@@ -233,7 +233,7 @@ function Contact() {
     <section className="contact" id="contact" data-world="6">
       <div className="sec">
         <div className="head-l"><span className="gem gem-ru" /><span className="num">08</span><span className="lbl">Contact</span></div>
-        <h2 className="ct-big"><Split parts="Let’s create" /><br /><em className="iri-t"><Split parts="something" /></em> <Split parts="remarkable." /></h2>
+        <h2 className="ct-big"><Split parts="Let’s create" /><br /><em className="gold-t"><Split parts="something" /></em> <Split parts="remarkable." /></h2>
         <div className="ct-row">
           <Magnetic href={`mailto:${profile.email}`} className="btn-xl" data-cursor="Write">Start a project</Magnetic>
           <div className="ct-info glass">
@@ -255,9 +255,9 @@ function Contact() {
 function useMotion(setWorld) {
   useLayoutEffect(() => {
     const worlds = gsap.utils.toArray('[data-world]')
-    const sts = worlds.map((el) => ScrollTrigger.create({ trigger: el, start: 'top 55%', end: 'bottom 55%', onToggle: (s) => s.isActive && setWorld(+el.dataset.world) }))
+    const sts = worlds.map((el) => ScrollTrigger.create({ trigger: el, start: 'top 55%', end: 'bottom 55%', onToggle: (s) => s.isActive && setWorld(0) }))
     if (RM) { document.documentElement.classList.add('rm'); return () => sts.forEach((s) => s.kill()) }
-    lenis = new Lenis({ duration: 1.2, smoothWheel: true, easing: (t) => 1 - Math.pow(1 - t, 4) })
+    lenis = new Lenis({ duration: 1.5, smoothWheel: true, easing: (t) => 1 - Math.pow(1 - t, 4) })
     lenis.on('scroll', ScrollTrigger.update)
     const tick = (t) => lenis.raf(t * 1000); gsap.ticker.add(tick); gsap.ticker.lagSmoothing(0)
     const mm = gsap.matchMedia()
