@@ -15,9 +15,8 @@ export const profile = {
   tagline: 'Design, code and artificial intelligence, made to be useful for everyone.',
   intro:
     'I design, build and speak. I founded PDFroo so anyone can use PDF tools for free, I make short space and science stories with Facts In Seconds, and I use AI as a creative partner for every project I work on.',
-  // TODO: replace with your personal email address
   email: 'abdulazizmagnifybusinessgroup@gmail.com',
-  emailIsPlaceholder: true,
+  emailIsPlaceholder: false,
   linkedin: 'https://www.linkedin.com/in/cboabdulazizbinharun',
 }
 
