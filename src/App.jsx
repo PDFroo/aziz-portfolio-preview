@@ -185,7 +185,7 @@ function Gallery({ onOpen }) {
           {gallery.map((g, i) => {
             const bw = i % 2 === 1 && has(g.image + '-bw') ? g.image + '-bw' : g.image
             return (
-              <button key={g.image} className={`gal-i gi-${i % 4}`} onClick={() => onOpen(i)} data-cursor="View" aria-label={`Open photo ${i + 1}: ${g.alt}`}>
+              <button key={g.image} className={`gal-i gi-${i % 4}`} onClick={() => onOpen(i)} data-cursor="View">
                 <span className="gal-img"><Pic name={bw} sizes="(max-width:900px) 70vw, 30vw" alt={g.alt} /></span>
                 <span className="lbl">{pad(i + 1)} / {pad(gallery.length)}</span>
               </button>)
@@ -314,7 +314,7 @@ function useMotion(ready) {
       })
       // scrubbed reading paragraph
       gsap.utils.toArray('.split--scrub').forEach((el) => {
-        gsap.fromTo(el.querySelectorAll('.wi'), { opacity: 0.14 }, { opacity: 1, stagger: 0.05, ease: 'none', scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 45%', scrub: true } })
+        gsap.fromTo(el.querySelectorAll('.wi'), { opacity: 0.26 }, { opacity: 1, stagger: 0.05, ease: 'none', scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 45%', scrub: true } })
       })
       // clip-path image reveals
       gsap.utils.toArray('.clip').forEach((el) => {
