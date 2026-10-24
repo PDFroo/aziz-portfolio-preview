@@ -1,0 +1,12 @@
+name = "abdul-aziz-portfolio"
+compatibility_date = "2026-10-09"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "abdul_aziz_portfolio"
+database_id = "replace-with-your-cloudflare-d1-database-id"
+
+[vars]
+ADMIN_USERNAME = "admin"
+# Set ADMIN_PASSWORD from Cloudflare dashboard instead of committing it.
