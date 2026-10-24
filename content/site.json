@@ -123,23 +123,8 @@
       "status": "Planned"
     }
   ],
-  "awards": [
-    {
-      "title": "E2E TEST AWARD (temporary)",
-      "issuer": "Test issuer",
-      "year": "",
-      "description": "",
-      "url": "",
-      "image": "/uploads/1792865698732-nav-avatar.webp"
-    }
-  ],
-  "videos": [
-    {
-      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "title": "E2E TEST VIDEO (temporary)",
-      "description": ""
-    }
-  ],
+  "awards": [],
+  "videos": [],
   "blogPosts": [
     {
       "id": "why-every-personal-brand-needs-a-website",
