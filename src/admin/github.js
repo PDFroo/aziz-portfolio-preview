@@ -39,7 +39,6 @@ async function req(method, path, body, t = token) {
     method,
     headers: { Authorization: `Bearer ${t}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", ...(body ? { "Content-Type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
   });
   if (res.status === 404 && method === "GET") return null;
   const data = res.status === 204 ? null : await res.json().catch(() => ({}));
@@ -78,6 +77,6 @@ export async function lastCommit() {
 export const rawUrl = (p) => `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${p}`;
 /** Public, token-free read of the current password hash (so a new device can verify the password). */
 export async function fetchAuth() {
-  const r = await fetch(`${rawUrl(AUTH_PATH)}?t=${Date.now()}`, { cache: "no-store" }).catch(() => null);
+  const r = await fetch(`${rawUrl(AUTH_PATH)}?t=${Date.now()}`).catch(() => null);
   return r && r.ok ? r.json() : null;
 }
