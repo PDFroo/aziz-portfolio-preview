@@ -33,6 +33,8 @@
   .adm .admin-sidebar { position: fixed; inset: 0 auto 0 0; width: min(290px, 84vw); z-index: 50; transform: translateX(-105%); transition: transform 0.3s ease; overflow-y: auto; }
   .adm .admin-sidebar.adm-open { transform: none; }
   .adm-burger { display: inline-grid; place-items: center; }
+  .adm .admin-sidebar .admin-nav { grid-template-columns: 1fr; }
+  .adm .admin-sidebar .admin-nav button { justify-content: flex-start; text-align: left; }
   .adm .admin-panel { padding: 16px 14px 90px; min-width: 0; }
   .adm .admin-topbar h1 { font-size: 1.3rem; }
   .adm .admin-field-grid { grid-template-columns: 1fr; }
