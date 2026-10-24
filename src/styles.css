@@ -3150,3 +3150,39 @@ html[data-theme="light"] .cinematic-section .text-link.center {
   .floating-nav a, .floating-nav button { padding: 8px 7px; font-size: 12.5px; min-width: 0; }
   .floating-nav .brand-pill { padding: 2px; }
 }
+
+/* ── v6 showcase sections (awards, videos, thumbnails) — same glass language as project cards ── */
+.sc-thumb { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 14px; margin-bottom: 14px; border: 1px solid var(--line); }
+.sc-awards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+.sc-award { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 14px 14px 20px; border-radius: 22px; border: 1px solid rgba(216, 173, 101, 0.32); background: linear-gradient(160deg, rgba(216, 173, 101, 0.1), rgba(8, 18, 16, 0.85)); box-shadow: var(--shadow); }
+.sc-award-frame { aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; display: grid; place-items: center; padding: 6px; background: linear-gradient(135deg, #8c6a35, #d8ad65 40%, #fff2cf 52%, #b88a45 66%, #6e5328); }
+.sc-award-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; background: #050605; }
+.sc-award-frame span { font-size: 42px; color: #050605; }
+.sc-award span { color: var(--gold); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.sc-award h3 { margin: 0; font-size: 1.1rem; }
+.sc-award p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.sc-videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 20px; width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+.sc-video { padding: 12px 12px 18px; border-radius: 22px; border: 1px solid var(--line); background: var(--panel); box-shadow: var(--shadow); }
+.sc-video h3 { margin: 14px 6px 4px; font-size: 1.05rem; }
+.sc-video p { margin: 0 6px; color: var(--muted); font-size: 0.92rem; }
+.sc-video-frame { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; }
+.sc-video-frame iframe, .sc-video-frame button, .sc-video-frame img { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; object-fit: cover; cursor: pointer; background: none; }
+.sc-video-frame i { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; display: grid; place-items: center; border-radius: 50%; font-style: normal; font-size: 22px; color: #050605; background: linear-gradient(135deg, var(--gold), var(--green)); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
+.sc-empty { text-align: center; color: var(--muted); font-size: 1.1rem; padding: 40px 0; }
+
+/* ── v6 responsive polish (mobile + tablet) ── */
+.contact-section > *, .detail-grid > *, .about-section > *, .project-grid > *, .blog-grid > * { min-width: 0; }
+.contact-card { min-width: 0; max-width: 100%; }
+.contact-action { max-width: 100%; overflow-wrap: anywhere; min-height: 44px; display: inline-flex; align-items: center; }
+.social-list a, .social-list button { white-space: normal; line-height: 1.25; padding: 8px 14px; }
+.text-link { display: inline-flex; align-items: center; min-height: 44px; }
+.project-card a, .blog-card a, .read-link { display: inline-flex; align-items: center; min-height: 44px; }
+.service-grid, .cinematic-overlay { max-width: 100%; }
+@media (max-width: 480px) {
+  .social-list { grid-template-columns: 1fr; }
+  .social-list .contact-action:nth-last-child(1):nth-child(odd) { width: 100%; }
+  .contact-card { padding: 20px; }
+}
+.contact-card .contact-action { min-height: 44px; }
+@media (min-width: 1280px) { .service-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
+@media (min-width: 981px) and (max-width: 1279px) { .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

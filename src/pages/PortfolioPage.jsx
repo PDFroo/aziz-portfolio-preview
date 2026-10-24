@@ -1,6 +1,7 @@
 import { asset, withBase } from "../base";
 import FloatingNav from "../components/FloatingNav";
 import ContactCard from "../components/ContactCard";
+import { WorkGrid, UpcomingGrid, AwardsGrid, VideoGrid } from "../components/Showcase";
 import { useLuxuryMotion } from "../useLuxuryMotion";
 
 const pageMeta = {
@@ -30,6 +31,10 @@ const pageMeta = {
     title: "SEO notes, digital growth lessons, and practical brand thinking.",
     intro: "Blog pages are ready for publishing posts from the admin panel."
   },
+  work: { eyebrow: "Completed Work", title: "Work I have designed, built and delivered.", intro: "A record of finished projects." },
+  upcoming: { eyebrow: "Upcoming", title: "What I am building next.", intro: "Projects that are planned or in progress." },
+  awards: { eyebrow: "Awards & Certificates", title: "Recognition, awards and certificates.", intro: "Milestones of learning and recognition." },
+  videos: { eyebrow: "Videos", title: "Watch my latest videos.", intro: "Talks, stories and AI-made videos from YouTube." },
   contact: {
     eyebrow: "Contact",
     title: "Let’s connect for serious digital work.",
@@ -78,11 +83,7 @@ export default function PortfolioPage({ content, navigate, path, theme, setTheme
         </section>
 
         <div className="marquee-band" aria-hidden="true">
-          <span>Abdul Aziz Bin Harun</span>
-          <span>Web Developer</span>
-          <span>SEO Specialist</span>
-          <span>Digital Marketer</span>
-          <span>Graphic Designer</span>
+          {[content.hero.name, ...String(content.hero.eyebrow || "").split("•").map((r) => r.trim()).filter(Boolean)].map((t) => <span key={t}>{t}</span>)}
         </div>
 
         {selectedPost ? (
@@ -95,6 +96,10 @@ export default function PortfolioPage({ content, navigate, path, theme, setTheme
             {page === "projects" && <ProjectsPage content={content} navigate={navigate} />}
             {page === "blog" && <BlogPage posts={publishedPosts} navigate={navigate} />}
             {page === "contact" && <ContactPage content={content} navigate={navigate} />}
+            {page === "work" && <section className="section-shell">{content.completedWork.length ? <WorkGrid items={content.completedWork} /> : <Empty />}</section>}
+            {page === "upcoming" && <section className="section-shell">{content.upcoming.length ? <UpcomingGrid items={content.upcoming} /> : <Empty />}</section>}
+            {page === "awards" && <section className="section-shell">{content.awards.length ? <AwardsGrid items={content.awards} /> : <Empty />}</section>}
+            {page === "videos" && <section className="section-shell">{content.videos.length ? <VideoGrid items={content.videos} /> : <Empty />}</section>}
           </>
         )}
       </main>
@@ -150,18 +155,11 @@ function SkillsPage({ content }) {
 }
 
 function ProjectsPage({ content }) {
-  return (
-    <section className="case-study-grid section-shell">
-      {content.projects.map((project, index) => (
-        <article className="case-card motion-card" data-reveal style={{ "--delay": `${index * 110}ms` }} key={project.title}>
-          <span>{project.category}</span>
-          <h2>{project.title}</h2>
-          <p>{project.description}</p>
-          <small>Full case study details can be added from the admin panel.</small>
-        </article>
-      ))}
-    </section>
-  );
+  return <section className="section-shell"><WorkGrid items={content.projects} /></section>;
+}
+
+function Empty() {
+  return <p className="sc-empty" data-reveal>Coming soon.</p>;
 }
 
 function BlogPage({ posts, navigate }) {

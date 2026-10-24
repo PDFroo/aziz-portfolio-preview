@@ -11,6 +11,9 @@ export function applySeo(content) {
   const analytics = content.adminSettings?.analytics || {};
 
   document.title = title;
+  const t = content.theme || {};
+  if (/^#[0-9a-f]{6}$/i.test(t.green || "")) document.documentElement.style.setProperty("--green", t.green);
+  if (/^#[0-9a-f]{6}$/i.test(t.gold || "")) document.documentElement.style.setProperty("--gold", t.gold);
   setMeta("description", description);
   setMeta("keywords", content.seo?.keywords || defaultContent.seo.keywords);
   setMeta("google-site-verification", analytics.searchConsole || "");
@@ -160,7 +163,12 @@ function mergeContent(base, incoming) {
     about: { ...base.about, ...incoming.about },
     contact: { ...base.contact, ...incoming.contact },
     assets: { ...base.assets, ...incoming.assets },
+    theme: { ...base.theme, ...incoming.theme },
     services: incoming.services || base.services,
+    completedWork: incoming.completedWork || base.completedWork,
+    upcoming: incoming.upcoming || base.upcoming,
+    awards: incoming.awards || base.awards,
+    videos: incoming.videos || base.videos,
     skills: incoming.skills || base.skills,
     projects: incoming.projects || base.projects,
     blogPosts: incoming.blogPosts || base.blogPosts,

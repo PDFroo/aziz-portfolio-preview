@@ -61,8 +61,8 @@ export default function ContactCard({ content, navigate }) {
   return (
     <div className="contact-card motion-card" data-reveal>
       <ContactAction href={emailHref} navigate={navigate}>{email}</ContactAction>
-      <ContactAction href={phoneHref} navigate={navigate}>{phone}</ContactAction>
-      <ContactAction href={cvUrl} navigate={navigate} external={Boolean(cvUrl)}>Download CV</ContactAction>
+      {phoneHref && <ContactAction href={phoneHref} navigate={navigate}>{phone}</ContactAction>}
+      {cvUrl && <ContactAction href={cvUrl} navigate={navigate} external>Download CV</ContactAction>}
       <div className="social-list">
         {content.socialLinks.map((item) => {
           const href = socialHref(item, phone);

@@ -1,4 +1,5 @@
 import { asset, withBase } from "../base";
+import { WorkGrid, UpcomingGrid, AwardsGrid, VideoGrid } from "../components/Showcase";
 import FloatingNav from "../components/FloatingNav";
 import ContactCard from "../components/ContactCard";
 import { useLuxuryMotion } from "../useLuxuryMotion";
@@ -121,22 +122,52 @@ export default function Home({ content, navigate, theme, setTheme }) {
               Open Projects Page
             </a>
           </div>
-          <div className="project-grid">
-            {content.projects.map((project, index) => (
-              <article
-                className="project-card motion-card"
-                data-reveal
-                style={{ "--delay": `${index * 110}ms` }}
-                key={project.title}
-              >
-                <span>{project.category}</span>
-                <h3>{project.title}</h3>
-                <p>{project.description}</p>
-                <a href={withBase("/projects")} onClick={go("/projects")}>View Details</a>
-              </article>
-            ))}
-          </div>
+          <WorkGrid items={content.projects} />
         </section>
+
+        {content.completedWork?.length > 0 && (
+          <section className="section-shell section-preview" id="work" data-reveal>
+            <div className="section-heading" data-reveal>
+              <p className="eyebrow">Completed Work</p>
+              <h2>Work I Have Delivered</h2>
+              <a className="text-link center" href={withBase("/work")} onClick={go("/work")}>Open Page</a>
+            </div>
+            <WorkGrid items={content.completedWork} />
+          </section>
+        )}
+
+        {content.upcoming?.length > 0 && (
+          <section className="section-shell section-preview" id="upcoming" data-reveal>
+            <div className="section-heading" data-reveal>
+              <p className="eyebrow">Upcoming</p>
+              <h2>What I Am Building Next</h2>
+              <a className="text-link center" href={withBase("/upcoming")} onClick={go("/upcoming")}>Open Page</a>
+            </div>
+            <UpcomingGrid items={content.upcoming} />
+          </section>
+        )}
+
+        {content.awards?.length > 0 && (
+          <section className="section-shell section-preview" id="awards" data-reveal>
+            <div className="section-heading" data-reveal>
+              <p className="eyebrow">Awards & Certificates</p>
+              <h2>Recognition & Learning</h2>
+              <a className="text-link center" href={withBase("/awards")} onClick={go("/awards")}>Open Page</a>
+            </div>
+            <AwardsGrid items={content.awards} />
+          </section>
+        )}
+
+        {content.videos?.length > 0 && (
+          <section className="section-shell section-preview" id="videos" data-reveal>
+            <div className="section-heading" data-reveal>
+              <p className="eyebrow">Videos</p>
+              <h2>Watch On YouTube</h2>
+              <a className="text-link center" href={withBase("/videos")} onClick={go("/videos")}>Open Page</a>
+            </div>
+            <VideoGrid items={content.videos} />
+          </section>
+        )}
 
         <section className="section-shell section-preview" id="blog" data-reveal>
           <div className="section-heading" data-reveal>
@@ -157,7 +188,7 @@ export default function Home({ content, navigate, theme, setTheme }) {
                 <span>{post.createdAt}</span>
                 <h3>{post.title}</h3>
                 <p>{post.excerpt}</p>
-                <a className="read-link" href={`/blog/${post.slug || post.id}`} onClick={go(`/blog/${post.slug || post.id}`)}>
+                <a className="read-link" href={withBase(`/blog/${post.slug || post.id}`)} onClick={go(`/blog/${post.slug || post.id}`)}>
                   Read post
                 </a>
               </article>
