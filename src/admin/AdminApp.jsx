@@ -24,7 +24,8 @@ const LISTS = {
 };
 const get = (o, p) => p.split(".").reduce((a, k) => a?.[k], o);
 const set = (o, p, v) => { const c = structuredClone(o); const ks = p.split("."); let t = c; ks.slice(0, -1).forEach((k) => { t[k] ??= {}; t = t[k]; }); t[ks.at(-1)] = v; return c; };
-const imgSrc = (v) => (!v ? "" : v.startsWith("/uploads/") ? gh.rawUrl("public" + v) : v.startsWith("/") ? BASE + v : v);
+const fresh = new Map(); // just-uploaded images (not deployed yet) → local blob URL preview
+const imgSrc = (v) => (!v ? "" : fresh.get(v) || (v.startsWith("/") ? BASE + v : v));
 const slugify = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 
 async function compress(file) {
@@ -325,7 +326,7 @@ function Img({ label, value, onChange, toast }) {
   async function pick(e) {
     const f = e.target.files?.[0]; e.target.value = ""; if (!f) return;
     setBusy(true);
-    try { const { bytes, ext } = await compress(f); const name = `${Date.now()}-${slugify(f.name.replace(/\.[^.]+$/, "")) || "image"}.${ext}`; onChange(await gh.putImage(name, bytes)); toast(`Image uploaded (${Math.round(bytes.length / 1024)} KB). Press Save & publish.`); }
+    try { const { bytes, ext } = await compress(f); const name = `${Date.now()}-${slugify(f.name.replace(/\.[^.]+$/, "")) || "image"}.${ext}`; const path = await gh.putImage(name, bytes); fresh.set(path, URL.createObjectURL(new Blob([bytes], { type: ext === "svg" ? "image/svg+xml" : `image/${ext}` }))); onChange(path); toast(`Image uploaded (${Math.round(bytes.length / 1024)} KB). Press Save & publish.`); }
     catch (x) { toast(x.message); } finally { setBusy(false); }
   }
   return (

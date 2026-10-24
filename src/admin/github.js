@@ -75,8 +75,12 @@ export async function lastCommit() {
   return d?.[0] || null;
 }
 export const rawUrl = (p) => `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${p}`;
-/** Public, token-free read of the current password hash (so a new device can verify the password). */
+/** Token-free read of the current password hash (public repo) so a new device can verify the password.
+ *  Uses api.github.com (not raw.githubusercontent.com) to keep all admin traffic on one origin. */
 export async function fetchAuth() {
-  const r = await fetch(`${rawUrl(AUTH_PATH)}?t=${Date.now()}`).catch(() => null);
-  return r && r.ok ? r.json() : null;
+  try {
+    const r = await fetch(`${API}${contents(AUTH_PATH)}?ref=${BRANCH}&t=${Date.now()}`, { headers: { Accept: "application/vnd.github+json" } });
+    if (!r.ok) return null;
+    return JSON.parse(b64ToUtf8((await r.json()).content));
+  } catch { return null; }
 }
