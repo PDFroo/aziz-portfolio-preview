@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "cf:dev": "wrangler pages dev dist --d1 DB=abdul_aziz_portfolio",
     "db:init": "wrangler d1 execute abdul_aziz_portfolio --local --file=./db/schema.sql",
-    "build:gh": "BASE=/aziz-portfolio-preview/ VITE_STATIC=1 vite build && cp dist/index.html dist/404.html && rm -f dist/_redirects",
+    "build:gh": "BASE=/aziz-portfolio-preview/ VITE_STATIC=1 vite build && node scripts/static-routes.mjs && rm -f dist/_redirects",
     "deploy": "npm run build:gh && gh-pages -d dist -b gh-pages --dotfiles"
   },
   "dependencies": {
