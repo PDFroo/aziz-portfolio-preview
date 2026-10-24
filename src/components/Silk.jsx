@@ -34,7 +34,7 @@ export default function Silk({ world = 0, onFail }) {
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
     const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
     const U = Object.fromEntries(['r', 't', 'm', 's', 'c0', 'c1', 'c2', 'c3'].map((k) => [k, gl.getUniformLocation(pr, k)]))
-    const mob = innerWidth < 900, scale = mob ? 0.35 : 0.5
+    const mob = innerWidth < 900, scale = mob ? 0.3 : 0.4
     const size = () => { c.width = Math.round(innerWidth * scale); c.height = Math.round(innerHeight * scale); gl.viewport(0, 0, c.width, c.height) }
     size(); addEventListener('resize', size)
     const cur = WORLDS[world].map((v) => [...v]); const mouse = [0.5, 0.5], tm = [0.5, 0.5]
@@ -45,6 +45,7 @@ export default function Silk({ world = 0, onFail }) {
     document.addEventListener('visibilitychange', vh)
     function loop(now) {
       if (!vis) return
+      if (scrollY > innerHeight * 1.1) { last = now; raf = requestAnimationFrame(loop); return }
       const dt = Math.min(now - last, 100); last = now; frames++
       if (frames < 90 && dt > 45) slow++
       if (slow > 30) { cancelAnimationFrame(raf); onFail?.(); return }
