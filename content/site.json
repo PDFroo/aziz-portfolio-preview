@@ -4,7 +4,11 @@
     "description": "Portfolio of Abdul Aziz Bin Harun from Dhaka, Bangladesh: graphic designer, web developer, motivational speaker and AI expert. Founder of PDFroo.",
     "keywords": "Abdul Aziz Bin Harun, graphic designer, web developer, motivational speaker, AI expert, PDFroo"
   },
-  "theme": { "green": "#3ff4ad", "gold": "#d8ad65", "defaultMode": "dark" },
+  "theme": {
+    "green": "#3ff4ad",
+    "gold": "#d8ad65",
+    "defaultMode": "dark"
+  },
   "hero": {
     "name": "Abdul Aziz Bin Harun",
     "eyebrow": "Graphic Designer • Web Developer • Motivational Speaker • AI Expert",
@@ -20,34 +24,122 @@
     "body": "I am Abdul Aziz Bin Harun, a graphic designer, web developer, motivational speaker and AI expert from Dhaka, Bangladesh. I founded PDFroo so anyone can use PDF tools for free, I make short space and science stories with Facts In Seconds, and I create AI-made Shorts on BlinkBeyond.",
     "image": "/assets/portfolio-about-profile.webp",
     "stats": [
-      { "value": "4", "label": "Core Roles" },
-      { "value": "PDFroo", "label": "Founder" },
-      { "value": "2", "label": "Content Channels" },
-      { "value": "AI", "label": "Creative Partner" }
+      {
+        "value": "4",
+        "label": "Core Roles"
+      },
+      {
+        "value": "PDFroo",
+        "label": "Founder"
+      },
+      {
+        "value": "2",
+        "label": "Content Channels"
+      },
+      {
+        "value": "AI",
+        "label": "Creative Partner"
+      }
     ]
   },
   "services": [
-    { "title": "Web Development", "description": "Fast, responsive websites and web tools built with modern React and clean structure." },
-    { "title": "Graphic Design", "description": "Professional visuals for brands, social media, product content, and marketing campaigns." },
-    { "title": "AI Solutions", "description": "AI as a creative partner: AI-made Shorts, narrated stories and smarter workflows." },
-    { "title": "Motivational Speaking", "description": "Confident, practical speaking around growth, discipline, learning and believing in your own work." }
+    {
+      "title": "Web Development",
+      "description": "Fast, responsive websites and web tools built with modern React and clean structure."
+    },
+    {
+      "title": "Graphic Design",
+      "description": "Professional visuals for brands, social media, product content, and marketing campaigns."
+    },
+    {
+      "title": "AI Solutions",
+      "description": "AI as a creative partner: AI-made Shorts, narrated stories and smarter workflows."
+    },
+    {
+      "title": "Motivational Speaking",
+      "description": "Confident, practical speaking around growth, discipline, learning and believing in your own work."
+    }
   ],
-  "skills": ["React.js", "Web Development", "Graphic Design", "Branding", "AI Tools", "Content Creation", "SEO", "Public Speaking"],
+  "skills": [
+    "React.js",
+    "Web Development",
+    "Graphic Design",
+    "Branding",
+    "AI Tools",
+    "Content Creation",
+    "SEO",
+    "Public Speaking"
+  ],
   "projects": [
-    { "title": "PDFroo", "category": "Founder · Web Product", "description": "Free, user-friendly online PDF tools. I built PDFroo so anyone can use PDF tools for free.", "url": "https://pdfroo.com", "image": "" },
-    { "title": "Facts In Seconds", "category": "Content · Facebook & Instagram", "description": "Space and science fact reels, plus narrated \"What if\" videos.", "url": "https://www.instagram.com/factsinseconds/", "image": "" },
-    { "title": "BlinkBeyond", "category": "YouTube · AI-made Shorts", "description": "A YouTube channel of Shorts made with artificial intelligence.", "url": "https://www.youtube.com/results?search_query=BlinkBeyond", "image": "" }
+    {
+      "title": "PDFroo",
+      "category": "Founder · Web Product",
+      "description": "Free, user-friendly online PDF tools. I built PDFroo so anyone can use PDF tools for free.",
+      "url": "https://pdfroo.com",
+      "image": ""
+    },
+    {
+      "title": "Facts In Seconds",
+      "category": "Content · Facebook & Instagram",
+      "description": "Space and science fact reels, plus narrated \"What if\" videos.",
+      "url": "https://www.instagram.com/factsinseconds/",
+      "image": ""
+    },
+    {
+      "title": "BlinkBeyond",
+      "category": "YouTube · AI-made Shorts",
+      "description": "A YouTube channel of Shorts made with artificial intelligence.",
+      "url": "https://www.youtube.com/results?search_query=BlinkBeyond",
+      "image": ""
+    }
   ],
   "completedWork": [
-    { "title": "PDFroo website", "category": "Web Development", "description": "Designed and built the PDFroo free online PDF tools website.", "url": "https://pdfroo.com", "image": "", "year": "" },
-    { "title": "Success with Harun", "category": "Website · Design & Development", "description": "A personal brand website designed and built for my father.", "url": "https://pdfroo.github.io/success-with-harun-preview/", "image": "", "year": "" }
+    {
+      "title": "PDFroo website",
+      "category": "Web Development",
+      "description": "Designed and built the PDFroo free online PDF tools website.",
+      "url": "https://pdfroo.com",
+      "image": "",
+      "year": ""
+    },
+    {
+      "title": "Success with Harun",
+      "category": "Website · Design & Development",
+      "description": "A personal brand website designed and built for my father.",
+      "url": "https://pdfroo.github.io/success-with-harun-preview/",
+      "image": "",
+      "year": ""
+    }
   ],
   "upcoming": [
-    { "title": "PDFroo: new features", "description": "More free tools and quality-of-life improvements are in the works.", "status": "In progress" },
-    { "title": "Facts In Seconds: expansion", "description": "New formats and more stories about space and science.", "status": "Planned" }
+    {
+      "title": "PDFroo: new features",
+      "description": "More free tools and quality-of-life improvements are in the works.",
+      "status": "In progress"
+    },
+    {
+      "title": "Facts In Seconds: expansion",
+      "description": "New formats and more stories about space and science.",
+      "status": "Planned"
+    }
   ],
-  "awards": [],
-  "videos": [],
+  "awards": [
+    {
+      "title": "E2E TEST AWARD (temporary)",
+      "issuer": "Test issuer",
+      "year": "",
+      "description": "",
+      "url": "",
+      "image": "/uploads/1792865698732-nav-avatar.webp"
+    }
+  ],
+  "videos": [
+    {
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "title": "E2E TEST VIDEO (temporary)",
+      "description": ""
+    }
+  ],
   "blogPosts": [
     {
       "id": "why-every-personal-brand-needs-a-website",
@@ -60,9 +152,18 @@
     }
   ],
   "socialLinks": [
-    { "label": "LinkedIn", "url": "https://www.linkedin.com/in/cboabdulazizbinharun" },
-    { "label": "Instagram · Facts In Seconds", "url": "https://www.instagram.com/factsinseconds/" },
-    { "label": "PDFroo", "url": "https://pdfroo.com" }
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/in/cboabdulazizbinharun"
+    },
+    {
+      "label": "Instagram · Facts In Seconds",
+      "url": "https://www.instagram.com/factsinseconds/"
+    },
+    {
+      "label": "PDFroo",
+      "url": "https://pdfroo.com"
+    }
   ],
   "contact": {
     "email": "abdulazizmagnifybusinessgroup@gmail.com",
@@ -70,5 +171,7 @@
     "location": "Dhaka, Bangladesh",
     "cvUrl": ""
   },
-  "assets": { "servicesImage": "/assets/portfolio-services-tech.webp" }
+  "assets": {
+    "servicesImage": "/assets/portfolio-services-tech.webp"
+  }
 }
